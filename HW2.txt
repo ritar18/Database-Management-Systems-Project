@@ -1,0 +1,123 @@
+CREATE SCHEMA Hospital_Management_System;
+
+CREATE TABLE PATIENT (
+patientID INT PRIMARY KEY,
+name VARCHAR(100) NOT NULL,
+dateOfBirth DATE NOT NULL,
+sex VARCHAR(11),
+medicalInsurance VARCHAR(100),
+addressStreet VARCHAR(100),
+addressDistrict VARCHAR(100),
+addressCity VARCHAR(100),
+emergencyName VARCHAR(100),
+emergencyPhone INT,
+CHECK (sex IN ('Male', 'Female', 'Unspecified')),
+CHECK (
+  (emergencyName IS NOT NULL AND emergencyPhone IS NOT NULL) 
+   OR emergencyName IS NULL)
+);
+
+CREATE TABLE PATIENT_ALLERGY(
+allergy VARCHAR(100),
+patientID INT,
+PRIMARY KEY(allergy,patientID),
+FOREIGN KEY(patientID) REFERENCES PATIENT(patientID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE PATIENT_EMAIL(
+email VARCHAR(100),
+patientID INT,
+PRIMARY KEY(email,patientID),
+FOREIGN KEY(patientID) REFERENCES PATIENT(patientID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE PATIENT_PHONE(
+phoneNumber INT,
+patientID INT,
+PRIMARY KEY(phoneNumber,patientID),
+FOREIGN KEY(patientID) REFERENCES PATIENT(patientID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE PREEXISTING_CONDITION(
+condition VARCHAR(255),
+patientID INT,
+PRIMARY KEY(condition, patientID),
+FOREIGN KEY(patientID) REFERENCES PATIENT(patientID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE DOCTOR(
+doctorID INT PRIMARY KEY,
+name VARCHAR(100) NOT NULL,
+medicalExpertise VARCHAR(100) NOT NULL,
+licenseNumber  VARCHAR(50) UNIQUE NOT NULL,
+addressStreet VARCHAR(100),
+addressCity VARCHAR(100),
+addressDistrict VARCHAR(100)
+);
+
+CREATE TABLE DOCTOR_EMAIL(
+email VARCHAR(100),
+doctorID INT,
+PRIMARY KEY(email,doctorID),
+FOREIGN KEY(doctorID) REFERENCES DOCTOR(doctorID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE DOCTOR_PHONE(
+phoneNumber INT,
+doctorID INT,
+PRIMARY KEY(phoneNumber,doctorID),
+FOREIGN KEY(doctorID) REFERENCES DOCTOR(doctorID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE APPOINTMENT(
+appointmentID INT PRIMARY KEY,
+date_time DATE NOT NULL,
+reason VARCHAR(255),
+patientID INT,
+doctorID INT,
+FOREIGN KEY(doctorID) REFERENCES DOCTOR(doctorID) ON DELETE CASCADE ON UPDATE CASCADE,
+FOREIGN KEY(patientID) REFERENCES PATIENT(patientID) ON DELETE CASCADE ON UPDATE CASCADE,
+CHECK (reason IN ('consultation', 'check-up', 'follow-up'))
+);
+
+CREATE TABLE TREATMENT(
+treatmentID INT,
+appointmentID INT,
+diagnosis VARCHAR(255) NOT NULL,
+PRIMARY KEY(treatmentID,appointmentID),
+FOREIGN KEY(appointmentID) REFERENCES APPOINTMENT(appointmentID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE PRESCRIPTION(
+prescriptionID INT,
+treatmentID INT,
+appointmentID INT,
+date DATE NOT NULL,
+drugName VARCHAR(100) NOT NULL,
+dosage FLOAT NOT NULL,
+unit VARCHAR(10) NOT NULL,
+PRIMARY KEY(prescriptionID,treatmentID,appointmentID),
+FOREIGN KEY(treatmentID,appointmentID) REFERENCES TREATMENT(treatmentID,appointmentID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE MEDICAL_CARE(
+description VARCHAR(255),
+treatmentID INT,
+appointmentID INT,
+date DATE NOT NULL,
+PRIMARY KEY (description,treatmentID,appointmentID),
+FOREIGN KEY(treatmentID,appointmentID) REFERENCES TREATMENT(treatmentID,appointmentID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE BILL(
+billID INT,
+appointmentID INT,
+medicalService VARCHAR(100) NOT NULL,
+amount FLOAT NOT NULL,
+paymentMethod VARCHAR(15),
+paid BOOLEAN,
+PRIMARY KEY(billID,appointmentID),
+FOREIGN KEY(appointmentID) REFERENCES APPOINTMENT(appointmentID) ON DELETE CASCADE ON UPDATE CASCADE,
+CHECK (paymentMethod IN ('Cash', 'Credit Card', 'Insurance')),
+CHECK (paid IN (TRUE, FALSE))
+);
